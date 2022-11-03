@@ -1,0 +1,52 @@
+version: '3'
+
+networks:
+  backend:
+    driver: bridge
+
+services:
+  orthanc:                                                              # https://book.orthanc-server.com/
+    image: jodogne/orthanc-plugins                                      # https://book.orthanc-server.com/users/docker.html
+    container_name: orthanc
+    environment:
+    - PGID=${PGID}
+    - PUID=${PUID}
+    - TZ=${TZ}
+    ports:
+    - "8042:8042"
+    - "4242:4242"
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes: 
+    - ./orthanc/orthanc.json:/etc/orthanc/orthanc.json:ro
+    - ./orthanc/cache:/var/lib/orthanc/db/ 
+    - ./data:/data                                                     # https://book.orthanc-server.com/plugins/indexer.html
+
+  orthanc_db:                                                          # https://book.orthanc-server.com/plugins/mysql.html
+    image: mariadb:10.5
+    container_name: orthanc_db
+    environment:
+    - PGID=${PGID}
+    - PUID=${PUID}
+    - TZ=${TZ}
+    - MYSQL_DATABASE=orthanc
+    - MYSQL_USER=orthanc
+    - MYSQL_PASSWORD=orthanc
+    - MYSQL_RANDOM_ROOT_PASSWORD=1
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - ./orthanc/db:/var/lib/mysql
+
+  meddream:                                                        
+    image: 'meddream/orthanc-dicom-viewer:7.9.0-rc.1'                       # https://hub.docker.com/r/meddream/orthanc-dicom-viewer
+    container_name: meddream
+    ports:
+    - "8012:8080"
+    restart: unless-stopped
+    networks:
+    - backend
+    volumes:
+    - ./meddream/application.properties:/opt/meddream/application.properties
