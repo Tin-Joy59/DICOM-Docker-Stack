@@ -1,0 +1,1 @@
+This is the ingest directory for the ORTHANC server. It's set to read-only. Once the files are placed here, the ORTHANC Indexer add-on should pick them up automatically, analyse them and display them in MEdDream's UI.
